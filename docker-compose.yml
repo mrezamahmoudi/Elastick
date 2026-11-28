@@ -1,0 +1,62 @@
+# --- Elastick -------------------------------------------------------------
+# Usage:
+#   docker compose up -d --build                 # run Elastick only
+#   docker compose --profile dev up -d           # also start a local ES for testing
+#
+# Configuration comes from the environment. Copy `.env.example` to `.env`
+# and edit it — compose loads `.env` automatically.
+
+services:
+  elastick:
+    build: .
+    image: elastick:latest
+    container_name: elastick
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Target Elasticsearch cluster to inspect. When the optional "dev"
+      # profile below is enabled, point this at http://elasticsearch:9200.
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://host.docker.internal:9200}
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME:-elastic}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-changeme}
+      ELASTIC_VERIFY_SSL: ${ELASTIC_VERIFY_SSL:-true}
+      ELASTIC_TIMEOUT: ${ELASTIC_TIMEOUT:-30}
+      ELASTICK_API_KEY: ${ELASTICK_API_KEY:-}
+      # Set to false for a Swagger-only deployment (no web UI at /ui).
+      ELASTICK_UI_ENABLED: ${ELASTICK_UI_ENABLED:-true}
+    healthcheck:
+      # Hits Elastick's own liveness endpoint (does not touch Elasticsearch).
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------
+  # Optional single-node Elasticsearch for local testing of Elastick.
+  # Start it with:  docker compose --profile dev up -d
+  # It is NOT started by a plain `docker compose up`.
+  # ---------------------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+    profiles: ["dev"]
+    container_name: elastick-dev-es
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+volumes:
+  es-data:

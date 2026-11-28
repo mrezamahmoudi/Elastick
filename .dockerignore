@@ -1,0 +1,14 @@
+# Files that never need to end up in the image.
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+.gitignore
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+ui/node_modules/
+ui/dist/
