@@ -7,6 +7,10 @@ cluster problem for the first time.
 Every endpoint is documented in the built-in Swagger UI so a newcomer can see
 what each one is for, when to use it, and whether it is safe or disruptive.
 
+![Elastick web UI — the Overview page](docs/ui.png)
+*The Elastick UI: live cluster status, auto-computed problem list, node and
+disk tables — served at `/` by the same service as the API.*
+
 **Further reading:** [docs/architecture.md](docs/architecture.md) explains the
 project's structure and design patterns; [CLAUDE.md](CLAUDE.md) holds the
 development guardrails.
